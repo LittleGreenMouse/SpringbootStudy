@@ -1,3 +1,7 @@
-# attempt to change default port
 server:
   port: 5200
+
+spring:
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
