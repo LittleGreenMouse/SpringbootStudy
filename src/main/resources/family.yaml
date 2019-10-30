@@ -5,7 +5,7 @@
 #    5. 孩子除了名字(name)和年龄（age）两个属性，还有一个friends的集合
 #    6. 每个friend有两个属性：hobby(爱好)和性别(sex)
 family:
-  family-name: "happy family"
+  family-name: ENC(fO+Ue64Xh/5N3tJm+xJvx7uYAVLQK6JT)
 
   email: 123@456.789
 
