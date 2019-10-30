@@ -19,7 +19,7 @@ import java.util.List;
 @Builder
 @JsonPropertyOrder(value = {"id", "writer", "title", "readers", "content"})
 public class Article {
-    @JsonIgnore
+    // @JsonIgnore
     private long id;
     // @JsonProperty("writer")
     @JsonInclude(JsonInclude.Include.NON_NULL)
