@@ -3,6 +3,7 @@ package cn.littlegreenmouse.hello.service;
 
 import cn.littlegreenmouse.hello.dao.ArticleJDBCDAO;
 import cn.littlegreenmouse.hello.model.Article;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,33 +15,40 @@ public class ArticleRestServiceJDBCImpl implements ArticleRestService {
     @Resource
     private ArticleJDBCDAO articleJDBCDAO;
 
-    @Transactional
+    @Resource
+    private JdbcTemplate primaryJdbcTemplate;
+
+    @Resource
+    private JdbcTemplate secondaryJdbcTemplate;
+
     @Override
+    @Transactional
     public Article saveArticle(Article article) {
-        articleJDBCDAO.save(article);
+        articleJDBCDAO.save(article, primaryJdbcTemplate);
+        articleJDBCDAO.save(article, secondaryJdbcTemplate);
         return article;
     }
 
     @Transactional
     @Override
     public void deleteArticle(long id) {
-        articleJDBCDAO.deleteById(id);
+        articleJDBCDAO.deleteById(id, primaryJdbcTemplate);
     }
 
     @Transactional
     @Override
     public Article updateArticle(Article article) {
-        articleJDBCDAO.updateById(article);
+        articleJDBCDAO.updateById(article, primaryJdbcTemplate);
         return article;
     }
 
     @Override
     public Article getArticle(long id) {
-        return articleJDBCDAO.findById(id);
+        return articleJDBCDAO.findById(id, primaryJdbcTemplate);
     }
 
     @Override
     public List<Article> getAll() {
-        return articleJDBCDAO.findAll();
+        return articleJDBCDAO.findAll(primaryJdbcTemplate);
     }
 }

@@ -11,9 +11,10 @@ import java.util.List;
 @Repository
 public class ArticleJDBCDAO {
     @Resource
-    private JdbcTemplate jdbcTemplate;
+    private JdbcTemplate primaryJdbcTemplate;
 
-    public void save(Article article) {
+    public void save(Article article, JdbcTemplate jdbcTemplate) {
+        if(jdbcTemplate == null)    jdbcTemplate = primaryJdbcTemplate;
         jdbcTemplate.update(
                 "insert into " +
                         "article(author, title, content, create_time) " +
@@ -24,14 +25,16 @@ public class ArticleJDBCDAO {
                 article.getCreateTime());
     }
 
-    public void deleteById(long id) {
+    public void deleteById(long id, JdbcTemplate jdbcTemplate) {
+        if(jdbcTemplate == null)    jdbcTemplate = primaryJdbcTemplate;
         jdbcTemplate.update(
                 "delete from article " +
                         "where id = ?",
                 new Object[]{id});
     }
 
-    public void updateById(Article article) {
+    public void updateById(Article article, JdbcTemplate jdbcTemplate) {
+        if(jdbcTemplate == null)    jdbcTemplate = primaryJdbcTemplate;
         jdbcTemplate.update(
                 "update article " +
                         "set author = ?, title = ?, content = ?, create_time = ? " +
@@ -43,7 +46,8 @@ public class ArticleJDBCDAO {
                 article.getId());
     }
 
-    public Article findById(long id) {
+    public Article findById(long id, JdbcTemplate jdbcTemplate) {
+        if(jdbcTemplate == null)    jdbcTemplate = primaryJdbcTemplate;
         return (Article) jdbcTemplate.queryForObject(
                 "select * " +
                         "from article " +
@@ -52,7 +56,8 @@ public class ArticleJDBCDAO {
                 new BeanPropertyRowMapper(Article.class));
     }
 
-    public List<Article> findAll() {
+    public List<Article> findAll(JdbcTemplate jdbcTemplate) {
+        if(jdbcTemplate == null)    jdbcTemplate = primaryJdbcTemplate;
         return (List<Article>) jdbcTemplate.query(
                 "select * " +
                         "from article",
