@@ -1,14 +1,12 @@
 package cn.littlegreenmouse.hello.service;
 
-import cn.littlegreenmouse.hello.dao.Article;
-import cn.littlegreenmouse.hello.dao.ArticleRepository;
+import cn.littlegreenmouse.hello.jpa.springboot.Article;
+import cn.littlegreenmouse.hello.jpa.springboot.ArticleRepository;
+import cn.littlegreenmouse.hello.jpa.springboot2.Message;
+import cn.littlegreenmouse.hello.jpa.springboot2.MessageRepository;
 import cn.littlegreenmouse.hello.model.ArticleVO;
 import cn.littlegreenmouse.hello.utils.DozerUtils;
 import org.dozer.Mapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -21,12 +19,17 @@ public class ArticleRestJPAServiceImpl implements ArticleRestService{
     private ArticleRepository articleRepository;
 
     @Resource
+    private MessageRepository messageRepository;
+
+    @Resource
     private Mapper dozerMapper;
 
     @Override
     public ArticleVO saveArticle(ArticleVO article) {
         Article articlePO = dozerMapper.map(article, Article.class);
         articleRepository.save(articlePO);
+        Message message = Message.builder().name("second").content("Hello world!").build();
+        messageRepository.save(message);
         return article;
     }
 
@@ -49,8 +52,7 @@ public class ArticleRestJPAServiceImpl implements ArticleRestService{
 
     @Override
     public List<ArticleVO> getAll() {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
-        Page<Article> articlePage = articleRepository.findAll(pageable);
-        return DozerUtils.mapList(articlePage.getContent(), ArticleVO.class);
+        List<Article> articles = articleRepository.findAll();
+        return DozerUtils.mapList(articles, ArticleVO.class);
     }
 }

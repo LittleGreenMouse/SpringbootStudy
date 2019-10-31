@@ -1,6 +1,6 @@
 package cn.littlegreenmouse.hello.jpa;
 
-import cn.littlegreenmouse.hello.dao.ArticleRepository;
+import cn.littlegreenmouse.hello.jpa.springboot.ArticleRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,7 +20,6 @@ public class JPAKeyWordTest {
 
     @Test
     public void userTest() {
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
-        System.out.println(articleRepository.findByAuthor("LittleMouse", pageable).getContent());
+        System.out.println(articleRepository.findByAuthor("LittleMouse"));
     }
 }
