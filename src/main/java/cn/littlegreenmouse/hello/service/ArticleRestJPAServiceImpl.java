@@ -5,6 +5,10 @@ import cn.littlegreenmouse.hello.dao.ArticleRepository;
 import cn.littlegreenmouse.hello.model.ArticleVO;
 import cn.littlegreenmouse.hello.utils.DozerUtils;
 import org.dozer.Mapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -45,7 +49,8 @@ public class ArticleRestJPAServiceImpl implements ArticleRestService{
 
     @Override
     public List<ArticleVO> getAll() {
-        List<Article> articles = articleRepository.findAll();
-        return DozerUtils.mapList(articles, ArticleVO.class);
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
+        Page<Article> articlePage = articleRepository.findAll(pageable);
+        return DozerUtils.mapList(articlePage.getContent(), ArticleVO.class);
     }
 }
