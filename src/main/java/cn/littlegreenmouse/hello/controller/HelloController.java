@@ -1,6 +1,6 @@
 package cn.littlegreenmouse.hello.controller;
 
-import cn.littlegreenmouse.hello.model.Article;
+import cn.littlegreenmouse.hello.model.ArticleVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,13 +9,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HelloController {
     @RequestMapping("/hello")
-    public Article index(String name) {
+    public ArticleVO index(String name) {
         // Article article = new Article(1,name);
 
-        Article article = Article.builder().id(1).author(name).build();
+        ArticleVO articleVO = ArticleVO.builder().id(1).author(name).build();
 
-        log.info("test: " + article);
+        log.info("test: " + articleVO);
 
-        return article;
+        return articleVO;
     }
 }

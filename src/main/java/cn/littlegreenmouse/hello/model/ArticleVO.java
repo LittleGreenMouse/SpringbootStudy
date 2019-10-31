@@ -18,15 +18,20 @@ import java.util.List;
 // Article.builder().id(id).author(name).build();
 @Builder
 @JsonPropertyOrder(value = {"id", "writer", "title", "readers", "content"})
-public class Article {
-    @JsonIgnore
+public class ArticleVO {
+    // @JsonIgnore
     private long id;
+
     // @JsonProperty("writer")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String author;
+
     private String title;
+
     private String content;
+
     // @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
+
     private List<Reader> readers;
 }
