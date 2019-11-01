@@ -1,58 +1,70 @@
 package cn.littlegreenmouse.hello.config;
 
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateSettings;
-import org.springframework.boot.autoconfigure.orm.jpa.JpaProperties;
-import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
+import com.atomikos.jdbc.AtomikosDataSourceBean;
+import com.mysql.cj.jdbc.MysqlXADataSource;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.annotation.Resource;
-import javax.persistence.EntityManager;
 import javax.sql.DataSource;
-import java.util.Map;
+import java.sql.SQLException;
+import java.util.HashMap;
 
 @Configuration
-@EnableTransactionManagement
+@DependsOn("transactionManager")
 @EnableJpaRepositories(
-        entityManagerFactoryRef = "entityManagerFactorySecondary",
-        transactionManagerRef = "transactionManagerSecondary",
-        basePackages = {"cn.littlegreenmouse.hello.jpa.springboot2"}
-)
+        basePackages = "cn.littlegreenmouse.hello.jpa.springboot2",
+        entityManagerFactoryRef = "secondaryEntityManager",
+        transactionManagerRef = "transactionManager")
 public class JPASecondaryConfig {
     @Resource
-    private DataSource secondaryDataSource;
+    private JpaVendorAdapter jpaVendorAdapter;
 
-    @Resource
-    private JpaProperties jpaProperties;
 
-    @Resource
-    private HibernateProperties hibernateProperties;
-
-    @Bean(name = "entityManagerFactorySecondary")
-    public LocalContainerEntityManagerFactoryBean entityManagerFactorySecondary(EntityManagerFactoryBuilder builder, JpaProperties jpaProperties, HibernateProperties hibernateProperties) {
-        Map<String, Object> properties = hibernateProperties.determineHibernateProperties(jpaProperties.getProperties(), new HibernateSettings());
-        return builder
-                .dataSource(secondaryDataSource)
-                .properties(properties)
-                .packages("cn.littlegreenmouse.hello.jpa.springboot2")
-                .build();
+    @Bean(name = "secondaryDataSourceProperties")
+    @Qualifier("secondaryDataSourceProperties")
+    @ConfigurationProperties(prefix = "spring.datasource.secondary")    //注意这里
+    public DataSourceProperties masterDataSourceProperties() {
+        return new DataSourceProperties();
     }
 
-    @Bean(name = "entityManagerSecondary")
-    public EntityManager entityManagerSecondary(EntityManagerFactoryBuilder builder) {
-        return entityManagerFactorySecondary(builder, jpaProperties, hibernateProperties).getObject().createEntityManager();
+
+    @Bean(name = "secondaryDataSource", initMethod = "init", destroyMethod = "close")
+    @ConfigurationProperties(prefix = "spring.datasource.secondary")
+    public DataSource masterDataSource() throws SQLException {
+        MysqlXADataSource mysqlXaDataSource = new MysqlXADataSource();
+        mysqlXaDataSource.setUrl(masterDataSourceProperties().getUrl());
+        mysqlXaDataSource.setPinGlobalTxToPhysicalConnection(true);
+        mysqlXaDataSource.setPassword(masterDataSourceProperties().getPassword());
+        mysqlXaDataSource.setUser(masterDataSourceProperties().getUsername());
+        AtomikosDataSourceBean xaDataSource = new AtomikosDataSourceBean();
+        xaDataSource.setXaDataSource(mysqlXaDataSource);
+        xaDataSource.setUniqueResourceName("secondary");
+        xaDataSource.setBorrowConnectionTimeout(60);
+        xaDataSource.setMaxPoolSize(20);
+        return xaDataSource;
     }
 
-    @Primary
-    @Bean(name = "transactionManagerSecondary")
-    public PlatformTransactionManager transactionManagerSecondary(EntityManagerFactoryBuilder builder) {
-        return new JpaTransactionManager(entityManagerFactorySecondary(builder, jpaProperties, hibernateProperties).getObject());
+    @Bean(name = "secondaryEntityManager")
+    @DependsOn("transactionManager")
+    public LocalContainerEntityManagerFactoryBean masterEntityManager() throws Throwable {
+
+        HashMap<String, Object> properties = new HashMap<String, Object>();
+        properties.put("hibernate.transaction.jta.platform", AtomikosJtaPlatform.class.getName());
+        properties.put("javax.persistence.transactionType", "JTA");
+        LocalContainerEntityManagerFactoryBean entityManager = new LocalContainerEntityManagerFactoryBean();
+        entityManager.setJtaDataSource(masterDataSource());
+        entityManager.setJpaVendorAdapter(jpaVendorAdapter);
+        entityManager.setPackagesToScan("cn.littlegreenmouse.hello.jpa.springboot2");
+        entityManager.setPersistenceUnitName("secondaryPersistenceUnit");
+        entityManager.setJpaPropertyMap(properties);
+        return entityManager;
     }
 }

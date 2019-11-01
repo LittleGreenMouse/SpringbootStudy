@@ -8,12 +8,14 @@ import cn.littlegreenmouse.hello.model.ArticleVO;
 import cn.littlegreenmouse.hello.utils.DozerUtils;
 import org.dozer.Mapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class ArticleRestJPAServiceImpl implements ArticleRestService{
     @Resource
     private ArticleRepository articleRepository;
@@ -25,11 +27,13 @@ public class ArticleRestJPAServiceImpl implements ArticleRestService{
     private Mapper dozerMapper;
 
     @Override
+    @Transactional
     public ArticleVO saveArticle(ArticleVO article) {
         Article articlePO = dozerMapper.map(article, Article.class);
         articleRepository.save(articlePO);
         Message message = Message.builder().name("second").content("Hello world!").build();
         messageRepository.save(message);
+        // int a = 2 / 0;
         return article;
     }
 
