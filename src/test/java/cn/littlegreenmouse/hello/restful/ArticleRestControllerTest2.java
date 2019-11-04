@@ -29,7 +29,7 @@ public class ArticleRestControllerTest2 {
         String article = "{\n"+
             "    \"id\": 1,\n" +
             "    \"author\": \"LittleMouse\",\n" +
-            "    \"title\": \"NB\",\n" +
+            "    \"title\": \"NBn\",\n" +
             "    \"content\": \"Restful api test\",\n" +
             "    \"createTime\": \"2019-10-28 15:07:16\",\n" +
             "    \"readers\":[{\"name\":\"zh\",\"age\":21},{\"name\":\"whr\",\"age\":21}]\n" +
