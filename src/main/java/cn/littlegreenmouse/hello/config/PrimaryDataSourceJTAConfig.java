@@ -5,48 +5,42 @@ import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.jta.atomikos.AtomikosDataSourceBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import javax.sql.DataSource;
 
 @Configuration
+@EnableConfigurationProperties
+@EnableAutoConfiguration
 @MapperScan(
         basePackages = "cn.littlegreenmouse.hello.generator.springboot",
         sqlSessionTemplateRef = "primarySqlSessionTemplate"
 )
-public class PrimaryDataSourceConfig {
+public class PrimaryDataSourceJTAConfig {
 
-    @Primary
-    @Bean(name = "primaryDataSource")
-    @ConfigurationProperties(prefix = "spring.datasource.primary")
+    @Bean("primaryDataSource")
+    @ConfigurationProperties(prefix = "primarydb")
     public DataSource primaryDataSource() {
-        return DataSourceBuilder.create().build();
+        return new AtomikosDataSourceBean();
     }
 
-    @Primary
-    @Bean(name = "primarySqlSessionFactory")
+    @Bean("primarySqlSessionFactory")
     public SqlSessionFactory primarySqlSessionFactory(@Qualifier("primaryDataSource") DataSource dataSource) throws Exception {
         SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
         bean.setDataSource(dataSource);
         bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath:generator/springboot/*.xml"));
+        bean.setTypeAliasesPackage("cn.littlegreenmouse.hello.generator.springboot");
         return bean.getObject();
     }
 
-    @Primary
-    @Bean(name = "primaryTransactionManager")
-    public DataSourceTransactionManager primaryTransactionManager(@Qualifier("primaryDataSource") DataSource dataSource) {
-        return new DataSourceTransactionManager(dataSource);
-    }
-
-    @Primary
-    @Bean(name = "primarySqlSessionTemplate")
-    public SqlSessionTemplate testSqlSessionTemplate(@Qualifier("primarySqlSessionFactory") SqlSessionFactory sqlSessionFactory) throws Exception {
+    @Bean("primarySqlSessionTemplate")
+    public SqlSessionTemplate primarySqlSessionTemplate(@Qualifier("primarySqlSessionFactory") SqlSessionFactory sqlSessionFactory) throws Exception {
         return new SqlSessionTemplate(sqlSessionFactory);
     }
 }

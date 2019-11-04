@@ -5,43 +5,46 @@ import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.jta.atomikos.AtomikosDataSourceBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 
 import javax.sql.DataSource;
 
 @Configuration
+@EnableConfigurationProperties
+@EnableAutoConfiguration
 @MapperScan(
         basePackages = "cn.littlegreenmouse.hello.generator.springboot2",
         sqlSessionTemplateRef = "secondarySqlSessionTemplate"
 )
-public class SecondaryDataSourceConfig {
+public class SecondaryDataSourceJTAConfig {
 
-    @Bean(name = "secondaryDataSource")
-    @ConfigurationProperties(prefix = "spring.datasource.secondary")    //注意这里secondary配置
-    public DataSource testDataSource() {
-        return DataSourceBuilder.create().build();
+    @Primary
+    @Bean("secondaryDataSource")
+    @ConfigurationProperties(prefix = "secondarydb")
+    public DataSource secondaryDataSource() {
+        return new AtomikosDataSourceBean();
     }
 
-    @Bean(name = "secondarySqlSessionFactory")
-    public SqlSessionFactory testSqlSessionFactory(@Qualifier("secondaryDataSource") DataSource dataSource) throws Exception {
+    @Primary
+    @Bean("secondarySqlSessionFactory")
+    public SqlSessionFactory secondarySqlSessionFactory(@Qualifier("secondaryDataSource") DataSource dataSource) throws Exception {
         SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
         bean.setDataSource(dataSource);
         bean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath:generator/springboot2/*.xml"));
+        bean.setTypeAliasesPackage("cn.littlegreenmouse.hello.generator.springboot2");
         return bean.getObject();
     }
 
-    @Bean(name = "secondaryTransactionManager")
-    public DataSourceTransactionManager testTransactionManager(@Qualifier("secondaryDataSource") DataSource dataSource) {
-        return new DataSourceTransactionManager(dataSource);
-    }
-
-    @Bean(name = "secondarySqlSessionTemplate")
-    public SqlSessionTemplate testSqlSessionTemplate(@Qualifier("secondarySqlSessionFactory") SqlSessionFactory sqlSessionFactory) throws Exception {
+    @Bean("secondarySqlSessionTemplate")
+    @Primary
+    public SqlSessionTemplate secondarySqlSessionTemplate(@Qualifier("secondarySqlSessionFactory") SqlSessionFactory sqlSessionFactory) throws Exception {
         return new SqlSessionTemplate(sqlSessionFactory);
     }
 }

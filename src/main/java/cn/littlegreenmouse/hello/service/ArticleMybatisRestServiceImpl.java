@@ -6,14 +6,15 @@ import cn.littlegreenmouse.hello.generator.springboot2.Message;
 import cn.littlegreenmouse.hello.generator.springboot2.MessageMapper;
 import cn.littlegreenmouse.hello.model.ArticleVO;
 import cn.littlegreenmouse.hello.utils.DozerUtils;
-import com.mysql.cj.MessageBuilder;
 import org.dozer.Mapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
 
 @Service
+@Transactional
 public class ArticleMybatisRestServiceImpl implements ArticleRestService{
     @Resource
     protected Mapper dozerMapper;
@@ -25,6 +26,7 @@ public class ArticleMybatisRestServiceImpl implements ArticleRestService{
     private MessageMapper messageMapper;
 
     @Override
+    @Transactional
     public ArticleVO saveArticle(ArticleVO articleVO) {
         Article article = dozerMapper.map(articleVO, Article.class);
         articleMapper.insert(article);
@@ -32,6 +34,9 @@ public class ArticleMybatisRestServiceImpl implements ArticleRestService{
         message.setName("first");
         message.setContent("test text");
         messageMapper.insert(message);
+
+        int a = 1 / 0;
+
         return articleVO;
     }
 
