@@ -21,6 +21,10 @@ logging:
   level:
     com.zimug.bootlaunch: debug
 
+context:
+  listener:
+    classes: cn.littlegreenmouse.hello.customlistener.MyListener3
+
 jasypt:
   encryptor:
     password: 123456
